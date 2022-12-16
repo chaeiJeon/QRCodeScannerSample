@@ -16,7 +16,16 @@
 
 package com.example.glass.qrcodescannersample;
 
+import static androidx.core.app.ActivityCompat.startActivityForResult;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.ImageSwitcher;
+import android.widget.ImageView;
+
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageAnalysis.Analyzer;
 import androidx.camera.core.ImageAnalysisConfig;
@@ -30,8 +39,11 @@ import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
+
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
+
 
 /**
  * Builds and provides {@link ImageAnalysis} object to bind the camera with.
@@ -39,6 +51,7 @@ import java.util.concurrent.Executor;
 public class QRCodeImageAnalysis implements Analyzer {
 
   private static final String TAG = QRCodeImageAnalysis.class.getSimpleName();
+  private static final int GALLERY_CODE = 112;
   private final ImageAnalysisConfig imageAnalysisConfig;
   private final Executor executor;
   private final QrCodeAnalysisCallback qrCodeAnalysisCallback;
@@ -73,16 +86,27 @@ public class QRCodeImageAnalysis implements Analyzer {
     buffer.get(imageBytes);
     final int width = image.getWidth();
     final int height = image.getHeight();
+    String resultText="";
+    String back="";
     final PlanarYUVLuminanceSource source =
         new PlanarYUVLuminanceSource(imageBytes, width, height, 0, 0, width, height, false);
     final BinaryBitmap zxingBinaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
     try {
       final Result decodedBarcode = new QRCodeReader().decode(zxingBinaryBitmap);
-      qrCodeAnalysisCallback.onQrCodeDetected(decodedBarcode.getText());
+       resultText = decodedBarcode.getText();
+
+      int idx = resultText.indexOf("!!!");
+      back = resultText.substring(idx+1);
+      qrCodeAnalysisCallback.onQrCodeDetected("back"+back);
+      File file= new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Pictures","test1 (1).jpg" );
+
+      Log.e(TAG, "hey this is = " + file.length()+"-------------------------------");
+
     } catch (NotFoundException | ChecksumException | FormatException e) {
       Log.e(TAG, "QR Code decoding error", e);
     }
   }
+
 
   /**
    * Callback interface for the communication with the {@link CameraActivity}.

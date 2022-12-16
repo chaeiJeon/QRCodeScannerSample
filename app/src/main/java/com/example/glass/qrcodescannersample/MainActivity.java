@@ -18,12 +18,22 @@ package com.example.glass.qrcodescannersample;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import com.example.glass.ui.GlassGestureDetector.Gesture;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
+
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * This activity scans a QR code and shows the result.
@@ -33,6 +43,7 @@ public class MainActivity extends BaseActivity {
   private static final int REQUEST_CODE = 105;
   private TextView resultLabel;
   private TextView scanResult;
+  private int flag = 0;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +68,28 @@ public class MainActivity extends BaseActivity {
       }
     }
   }
+public void makeQRCode(){
+    if(flag==1){
+      return;
+    }
+    int width = 150;
+    int height=150;
+      QRCodeWriter writer = new QRCodeWriter();
+      String url = null;
+      url = "aibver.com/!!!/C:/Users/user/Desktop/test/sofa.jpg";
+      MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
+  try{
+    BitMatrix bitMatrix = multiFormatWriter.encode(url, BarcodeFormat.QR_CODE,width,height);
+    BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+    Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
+    MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "test1", "test1-description");
+  flag=1;
+  }catch (Exception e){
+      e.printStackTrace();
+    }
 
+
+}
   /**
    * Hides previously shown QR code string and starts scanning QR Code on {@link Gesture#TAP}
    * gesture. Finishes application on {@link Gesture#SWIPE_DOWN} gesture.
@@ -66,6 +98,7 @@ public class MainActivity extends BaseActivity {
   public boolean onGesture(Gesture gesture) {
     switch (gesture) {
       case TAP:
+//        Intent(this, CameraActivity.class) = this에서 CameraActivity.class를 호출
         startActivityForResult(new Intent(this, CameraActivity.class), REQUEST_CODE);
         resultLabel.setVisibility(View.GONE);
         scanResult.setVisibility(View.GONE);
@@ -73,6 +106,8 @@ public class MainActivity extends BaseActivity {
       case SWIPE_DOWN:
         finish();
         return true;
+      case SWIPE_UP:
+        makeQRCode();
       default:
         return false;
     }
